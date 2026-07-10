@@ -12,29 +12,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { deleteCustomerAction } from "@/features/customers/actions";
-import type { Customer } from "@/types/customer";
+import { deleteProductAction } from "@/features/products/actions";
+import type { Product } from "@/types/product";
 
-type DeleteCustomerDialogProps = {
-  customer: Customer | null;
+type DeleteProductDialogProps = {
+  product: Product | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-export function DeleteCustomerDialog({
-  customer,
+export function DeleteProductDialog({
+  product,
   open,
   onOpenChange,
-}: DeleteCustomerDialogProps) {
+}: DeleteProductDialogProps) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function handleDelete() {
-    if (!customer) return;
+    if (!product) return;
 
     setError(null);
     startTransition(async () => {
-      const result = await deleteCustomerAction(customer.id);
+      const result = await deleteProductAction(product.id);
       if (result.error) {
         setError(result.error);
         return;
@@ -47,11 +47,11 @@ export function DeleteCustomerDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete customer?</AlertDialogTitle>
+          <AlertDialogTitle>Delete product?</AlertDialogTitle>
           <AlertDialogDescription>
             This will permanently remove{" "}
-            <span className="font-medium text-foreground">{customer?.name}</span>{" "}
-            from your leads. This action cannot be undone.
+            <span className="font-medium text-foreground">{product?.name}</span>{" "}
+            from your catalog. This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
 

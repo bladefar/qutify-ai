@@ -50,16 +50,24 @@ export function CustomerFormDialog({
   onOpenChange,
   customer,
 }: CustomerFormDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <CustomerForm
+        key={`${open}-${customer?.id ?? "new"}`}
+        customer={customer}
+        onOpenChange={onOpenChange}
+      />
+    </Dialog>
+  );
+}
+
+type CustomerFormProps = Omit<CustomerFormDialogProps, "open">;
+
+function CustomerForm({ customer, onOpenChange }: CustomerFormProps) {
   const isEditing = Boolean(customer);
   const action = isEditing ? updateCustomerAction : createCustomerAction;
   const [state, formAction, pending] = useActionState(action, initialState);
   const [status, setStatus] = useState<CustomerStatus>(customer?.status ?? "warm");
-
-  useEffect(() => {
-    if (open) {
-      setStatus(customer?.status ?? "warm");
-    }
-  }, [open, customer]);
 
   useEffect(() => {
     if (state.success) {
@@ -68,8 +76,7 @@ export function CustomerFormDialog({
   }, [state.success, onOpenChange]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit customer" : "Add customer"}</DialogTitle>
           <DialogDescription>
@@ -185,7 +192,6 @@ export function CustomerFormDialog({
             </Button>
           </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+    </DialogContent>
   );
 }

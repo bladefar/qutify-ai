@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { BrandLogo } from "@/components/shared/brand-logo";
+import { SignOutButton } from "@/components/dashboard/sign-out-button";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -70,6 +71,10 @@ export function DashboardSidebar() {
           );
         })}
       </nav>
+
+      <div className="border-t border-border/50 p-3">
+        <SignOutButton />
+      </div>
     </aside>
   );
 }

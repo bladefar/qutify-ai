@@ -13,6 +13,17 @@ export async function getProducts(): Promise<Product[]> {
   return data ?? [];
 }
 
+export async function getProductCount(): Promise<number> {
+  const supabase = await createClient();
+
+  const { count, error } = await supabase
+    .from("products")
+    .select("*", { count: "exact", head: true });
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export async function getProductById(id: string): Promise<Product | null> {
   const supabase = await createClient();
 
