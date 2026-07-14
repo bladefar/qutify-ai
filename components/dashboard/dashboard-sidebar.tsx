@@ -20,7 +20,7 @@ const navItems = [
   { label: "Customers", href: "/dashboard/customers", icon: Users },
   { label: "Products", href: "/dashboard/products", icon: Package },
   { label: "AI Assistant", href: "/dashboard/assistant", icon: Bot, disabled: true },
-  { label: "Quotations", href: "/dashboard/quotations", icon: FileText, disabled: true },
+  { label: "Quotations", href: "/dashboard/quotations", icon: FileText },
   { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3, disabled: true },
   { label: "Settings", href: "/dashboard/settings", icon: Settings, disabled: true },
 ];

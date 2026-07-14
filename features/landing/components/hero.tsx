@@ -116,10 +116,11 @@ export function Hero() {
 
           <FadeIn delay={0.3}>
             <div className="flex flex-wrap gap-3">
-              <Button size="lg" render={<Link href="/register" />}>
+              <Button nativeButton={false} size="lg" render={<Link href="/register" />}>
                 Start for free →
               </Button>
               <Button
+                nativeButton={false}
                 variant="outline"
                 size="lg"
                 render={<Link href="#features" />}

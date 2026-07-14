@@ -13,6 +13,7 @@ import { CustomerStatusBadge } from "@/features/customers/components/customer-st
 import { formatRelativeTime } from "@/lib/format-relative-time";
 import { getCustomerCount, getRecentCustomers } from "@/services/customers";
 import { getProductCount } from "@/services/products";
+import { getQuoteDashboardStats } from "@/services/quotations";
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +60,7 @@ const quickActions = [
   {
     label: "New Quote",
     description: "Generate a quotation",
-    href: "/dashboard/quotations",
+    href: "/dashboard/quotations/new",
     icon: FileText,
   },
 ];
@@ -69,17 +70,18 @@ function formatPipelineValue(amount: number) {
 }
 
 export default async function DashboardPage() {
-  const [customerCount, productCount, recentCustomers] = await Promise.all([
+  const [customerCount, productCount, recentCustomers, quoteStats] = await Promise.all([
     getCustomerCount(),
     getProductCount(),
     getRecentCustomers(5),
+    getQuoteDashboardStats(),
   ]);
 
   const stats = {
     customers: customerCount,
     products: productCount,
-    quotes: 0,
-    pipeline: 0,
+    quotes: quoteStats.quoteCount,
+    pipeline: quoteStats.pipelineValue,
   };
 
   return (
@@ -121,7 +123,7 @@ export default async function DashboardPage() {
             {recentCustomers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <p className="text-sm text-muted-foreground">No customers yet</p>
-                <Button className="mt-4" render={<Link href="/dashboard/customers" />}>
+                <Button nativeButton={false} className="mt-4" render={<Link href="/dashboard/customers" />}>
                   <Plus className="size-4" />
                   Add your first customer
                 </Button>

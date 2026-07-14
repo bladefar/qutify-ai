@@ -6,10 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:ai-quote": "tsx scripts/verify-ai-quote.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
+    "@openrouter/sdk": "^0.13.39",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.110.1",
     "class-variance-authority": "^0.7.1",
@@ -32,6 +34,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",
+    "tsx": "^4.23.0",
     "typescript": "^5"
   }
 }

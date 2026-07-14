@@ -60,6 +60,7 @@ export function PricingSection() {
                 </ul>
 
                 <Button
+                  nativeButton={false}
                   variant={tier.highlighted ? "default" : "outline"}
                   className="w-full"
                   render={<Link href="/register" />}
