@@ -19,6 +19,8 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const resetComplete = searchParams.get("reset") === "success";
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -87,6 +89,11 @@ export function LoginForm() {
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
+        {resetComplete && (
+          <p className="text-sm text-brand-success">
+            Password updated successfully. You can now sign in.
+          </p>
+        )}
 
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Signing in…" : "Sign in"}
