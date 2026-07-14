@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DownloadQuotationPdf } from "@/features/quotations/components/download-quotation-pdf";
 import { getQuotationById } from "@/services/quotations";
 import type { QuotationStatus } from "@/types/quotation";
 
@@ -37,7 +38,10 @@ export default async function QuotationDetailPage({
           <h1 className="text-2xl font-bold tracking-tight">Quotation</h1>
           <p className="text-sm text-muted-foreground">{quote.customer_name ?? "No customer"} · {new Date(quote.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</p>
         </div>
-        <Badge variant={statusVariant[quote.status]} className="capitalize">{quote.status}</Badge>
+        <div className="flex items-center gap-3">
+          <DownloadQuotationPdf quote={quote} />
+          <Badge variant={statusVariant[quote.status]} className="capitalize">{quote.status}</Badge>
+        </div>
       </div>
 
       <Card className="glass"><CardContent>
