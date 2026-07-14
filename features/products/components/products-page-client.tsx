@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { MoreHorizontal, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,10 +21,15 @@ import {
 } from "@/components/ui/table";
 import { DeleteProductDialog } from "./delete-product-dialog";
 import { ProductFormDialog } from "./product-form-dialog";
+import { PaginationControls } from "@/components/shared/pagination-controls";
 import type { Product } from "@/types/product";
 
 type ProductsPageClientProps = {
   products: Product[];
+  total: number;
+  page: number;
+  totalPages: number;
+  search: string;
 };
 
 function formatPrice(amount: number) {
@@ -33,20 +39,21 @@ function formatPrice(amount: number) {
   })}`;
 }
 
-export function ProductsPageClient({ products }: ProductsPageClientProps) {
-  const [search, setSearch] = useState("");
+export function ProductsPageClient({ products, total, page, totalPages, search }: ProductsPageClientProps) {
+  const router = useRouter();
   const [formOpen, setFormOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const filtered = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    return products.filter((product) => {
-      if (!query) return true;
-      return product.name.toLowerCase().includes(query);
-    });
-  }, [products, search]);
+  function handleSearch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const nextSearch = String(formData.get("search") ?? "").trim();
+    const params = new URLSearchParams();
+    if (nextSearch) params.set("search", nextSearch);
+    params.set("page", "1");
+    router.push(`/dashboard/products?${params.toString()}`);
+  }
 
   function openCreate() {
     setSelectedProduct(null);
@@ -78,15 +85,15 @@ export function ProductsPageClient({ products }: ProductsPageClientProps) {
         </Button>
       </div>
 
-      <div className="relative max-w-sm">
+      <form onSubmit={handleSearch} className="relative max-w-sm">
         <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
+          name="search"
           placeholder="Search by name…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          defaultValue={search}
           className="pl-9"
         />
-      </div>
+      </form>
 
       <div className="glass rounded-xl">
         <Table>
@@ -102,18 +109,18 @@ export function ProductsPageClient({ products }: ProductsPageClientProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length === 0 ? (
+            {products.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-32 text-center">
                   <p className="text-muted-foreground">
-                    {products.length === 0
+                    {total === 0 && !search
                       ? "No products yet. Add your first item."
                       : "No products match your search."}
                   </p>
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((product) => (
+              products.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell className="text-muted-foreground">
@@ -153,6 +160,17 @@ export function ProductsPageClient({ products }: ProductsPageClientProps) {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm text-muted-foreground">
+          Showing {products.length} of {total} products
+        </p>
+        <PaginationControls
+          page={page}
+          totalPages={totalPages}
+          searchParams={{ search: search || undefined }}
+        />
       </div>
 
       <ProductFormDialog

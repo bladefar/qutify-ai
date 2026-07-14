@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { MoreHorizontal, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +29,7 @@ import {
 import { CustomerFormDialog } from "./customer-form-dialog";
 import { CustomerStatusBadge } from "./customer-status-badge";
 import { DeleteCustomerDialog } from "./delete-customer-dialog";
+import { PaginationControls } from "@/components/shared/pagination-controls";
 import {
   CUSTOMER_STATUSES,
   CUSTOMER_STATUS_LABELS,
@@ -37,6 +39,11 @@ import {
 
 type CustomersPageClientProps = {
   customers: Customer[];
+  total: number;
+  page: number;
+  totalPages: number;
+  search: string;
+  status: CustomerStatus | "all";
 };
 
 function formatLastContact(iso: string | null) {
@@ -48,28 +55,33 @@ function formatLastContact(iso: string | null) {
   });
 }
 
-export function CustomersPageClient({ customers }: CustomersPageClientProps) {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<CustomerStatus | "all">("all");
+export function CustomersPageClient({
+  customers,
+  total,
+  page,
+  totalPages,
+  search,
+  status,
+}: CustomersPageClientProps) {
+  const router = useRouter();
+  const [statusFilter, setStatusFilter] = useState<CustomerStatus | "all">(status);
   const [formOpen, setFormOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
-  const filtered = useMemo(() => {
-    const query = search.trim().toLowerCase();
+  function navigateWithFilters(nextSearch: string, nextStatus: CustomerStatus | "all") {
+    const params = new URLSearchParams();
+    if (nextSearch.trim()) params.set("search", nextSearch.trim());
+    if (nextStatus !== "all") params.set("status", nextStatus);
+    params.set("page", "1");
+    router.push(`/dashboard/customers?${params.toString()}`);
+  }
 
-    return customers.filter((customer) => {
-      const matchesStatus =
-        statusFilter === "all" || customer.status === statusFilter;
-
-      const matchesSearch =
-        !query ||
-        customer.name.toLowerCase().includes(query) ||
-        (customer.company?.toLowerCase().includes(query) ?? false);
-
-      return matchesStatus && matchesSearch;
-    });
-  }, [customers, search, statusFilter]);
+  function handleSearch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    navigateWithFilters(String(formData.get("search") ?? ""), statusFilter);
+  }
 
   function openCreate() {
     setSelectedCustomer(null);
@@ -102,20 +114,22 @@ export function CustomersPageClient({ customers }: CustomersPageClientProps) {
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1 sm:max-w-sm">
+        <form onSubmit={handleSearch} className="relative flex-1 sm:max-w-sm">
           <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            name="search"
             placeholder="Search by name or company…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            defaultValue={search}
             className="pl-9"
           />
-        </div>
+        </form>
         <Select
-          value={statusFilter}
-          onValueChange={(value) =>
-            setStatusFilter(value as CustomerStatus | "all")
-          }
+          value={status}
+          onValueChange={(value) => {
+            const nextStatus = value as CustomerStatus | "all";
+            setStatusFilter(nextStatus);
+            navigateWithFilters(search, nextStatus);
+          }}
         >
           <SelectTrigger className="w-full sm:w-40">
             <SelectValue placeholder="All statuses" />
@@ -145,18 +159,18 @@ export function CustomersPageClient({ customers }: CustomersPageClientProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length === 0 ? (
+            {customers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-32 text-center">
                   <p className="text-muted-foreground">
-                    {customers.length === 0
+                    {total === 0 && !search && status === "all"
                       ? "No customers yet. Add your first lead."
                       : "No customers match your search."}
                   </p>
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((customer) => (
+              customers.map((customer) => (
                 <TableRow key={customer.id}>
                   <TableCell className="font-medium">{customer.name}</TableCell>
                   <TableCell className="text-muted-foreground">
@@ -198,6 +212,17 @@ export function CustomersPageClient({ customers }: CustomersPageClientProps) {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm text-muted-foreground">
+          Showing {customers.length} of {total} customers
+        </p>
+        <PaginationControls
+          page={page}
+          totalPages={totalPages}
+          searchParams={{ search: search || undefined, status: status === "all" ? undefined : status }}
+        />
       </div>
 
       <CustomerFormDialog
