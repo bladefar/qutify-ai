@@ -22,7 +22,7 @@ const navItems = [
   { label: "AI Assistant", href: "/dashboard/assistant", icon: Bot, disabled: true },
   { label: "Quotations", href: "/dashboard/quotations", icon: FileText },
   { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings, disabled: true },
+  { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
 export function DashboardSidebar() {
