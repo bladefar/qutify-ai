@@ -4,6 +4,7 @@ import { useState } from "react";
 import { pdf, Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { BusinessProfile } from "@/types/business-profile";
 import type { QuotationDetail } from "@/types/quotation";
 
 const styles = StyleSheet.create({
@@ -23,6 +24,7 @@ const styles = StyleSheet.create({
   },
   brand: { fontSize: 22, fontWeight: 700, color: "#2563EB" },
   subtitle: { marginTop: 4, fontSize: 9, color: "#71717A" },
+  businessDetails: { marginTop: 8, fontSize: 8, lineHeight: 1.35, color: "#52525B" },
   title: { fontSize: 18, fontWeight: 700, textAlign: "right" },
   meta: { marginTop: 6, color: "#71717A", textAlign: "right" },
   section: { marginBottom: 22 },
@@ -76,14 +78,32 @@ function formatDate(value: string) {
   });
 }
 
-function QuotationPdfDocument({ quote }: { quote: QuotationDetail }) {
+function QuotationPdfDocument({
+  quote,
+  businessProfile,
+}: {
+  quote: QuotationDetail;
+  businessProfile: BusinessProfile | null;
+}) {
+  const businessDetails = businessProfile
+    ? [
+        businessProfile.business_email,
+        businessProfile.business_phone,
+        businessProfile.business_address,
+        businessProfile.gst_number ? `GSTIN: ${businessProfile.gst_number}` : null,
+      ].filter(Boolean)
+    : ["Add your business details in Settings"];
+
   return (
     <Document title={`Quotation ${quote.id.slice(0, 8)}`} author="Quotify AI">
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.brand}>Quotify AI</Text>
+            <Text style={styles.brand}>{businessProfile?.business_name ?? "Quotify AI"}</Text>
             <Text style={styles.subtitle}>Professional quotation</Text>
+            {businessDetails.map((detail) => (
+              <Text key={detail} style={styles.businessDetails}>{detail}</Text>
+            ))}
           </View>
           <View>
             <Text style={styles.title}>QUOTATION</Text>
@@ -142,14 +162,22 @@ function QuotationPdfDocument({ quote }: { quote: QuotationDetail }) {
   );
 }
 
-export function DownloadQuotationPdf({ quote }: { quote: QuotationDetail }) {
+export function DownloadQuotationPdf({
+  quote,
+  businessProfile,
+}: {
+  quote: QuotationDetail;
+  businessProfile: BusinessProfile | null;
+}) {
   const [loading, setLoading] = useState(false);
 
   async function handleDownload() {
     setLoading(true);
 
     try {
-      const blob = await pdf(<QuotationPdfDocument quote={quote} />).toBlob();
+      const blob = await pdf(
+        <QuotationPdfDocument quote={quote} businessProfile={businessProfile} />,
+      ).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;

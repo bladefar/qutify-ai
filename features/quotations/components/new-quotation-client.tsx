@@ -21,6 +21,7 @@ import type { Customer } from "@/types/customer";
 
 type NewQuotationClientProps = {
   initialCustomers: Customer[];
+  defaultGstRate: number;
 };
 
 function formatCurrency(amount: number) {
@@ -30,7 +31,10 @@ function formatCurrency(amount: number) {
   })}`;
 }
 
-export function NewQuotationClient({ initialCustomers }: NewQuotationClientProps) {
+export function NewQuotationClient({
+  initialCustomers,
+  defaultGstRate,
+}: NewQuotationClientProps) {
   const router = useRouter();
   const [rawInput, setRawInput] = useState("");
   const [items, setItems] = useState<GeneratedQuoteItem[]>([]);
@@ -38,7 +42,7 @@ export function NewQuotationClient({ initialCustomers }: NewQuotationClientProps
   const [customers, setCustomers] = useState(initialCustomers);
   const [customerId, setCustomerId] = useState<string>("");
   const [discount, setDiscount] = useState("0");
-  const [gstRate, setGstRate] = useState("18");
+  const [gstRate, setGstRate] = useState(String(defaultGstRate));
   const [error, setError] = useState<string | null>(null);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
   const [newCustomerName, setNewCustomerName] = useState("");
@@ -62,7 +66,7 @@ export function NewQuotationClient({ initialCustomers }: NewQuotationClientProps
   function generateQuote() {
     setError(null);
     startGenerating(async () => {
-      const result = await generateQuoteAction(rawInput);
+      const result = await generateQuoteAction(rawInput, Number(gstRate));
       if (result.error) {
         setError(result.error);
         return;

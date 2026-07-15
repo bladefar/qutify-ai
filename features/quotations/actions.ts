@@ -17,9 +17,12 @@ async function requireUser() {
   return user;
 }
 
-export async function generateQuoteAction(rawInput: string) {
+export async function generateQuoteAction(rawInput: string, gstRate: number) {
   try {
-    return { quote: await generateAiQuote(rawInput) };
+    const parsedGstRate = z.coerce.number().min(0).max(100).safeParse(gstRate);
+    if (!parsedGstRate.success) return { error: "GST rate must be between 0 and 100" };
+
+    return { quote: await generateAiQuote(rawInput, { gstRate: parsedGstRate.data }) };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not generate quote" };
   }

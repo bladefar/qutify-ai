@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DownloadQuotationPdf } from "@/features/quotations/components/download-quotation-pdf";
+import { getBusinessProfile } from "@/services/business-profiles";
 import { getQuotationById } from "@/services/quotations";
 import type { QuotationStatus } from "@/types/quotation";
 
@@ -27,7 +28,10 @@ export default async function QuotationDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const quote = await getQuotationById(id);
+  const [quote, businessProfile] = await Promise.all([
+    getQuotationById(id),
+    getBusinessProfile(),
+  ]);
   if (!quote) notFound();
 
   return (
@@ -39,7 +43,7 @@ export default async function QuotationDetailPage({
           <p className="text-sm text-muted-foreground">{quote.customer_name ?? "No customer"} · {new Date(quote.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</p>
         </div>
         <div className="flex items-center gap-3">
-          <DownloadQuotationPdf quote={quote} />
+          <DownloadQuotationPdf quote={quote} businessProfile={businessProfile} />
           <Badge variant={statusVariant[quote.status]} className="capitalize">{quote.status}</Badge>
         </div>
       </div>
