@@ -20,7 +20,7 @@ export function AuthLayout({ title, description, children, footer }: AuthLayoutP
       <div className="relative w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center gap-4 text-center">
           <Link href="/">
-            <BrandLogo />
+            <BrandLogo icon="image" />
           </Link>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{title}</h1>

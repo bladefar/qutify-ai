@@ -19,6 +19,18 @@ export const metadata: Metadata = {
     template: `%s | ${appConfig.name}`,
   },
   description: appConfig.description,
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon1.png", type: "image/png", sizes: "16x16" },
+      { url: "/icon2.png", type: "image/png", sizes: "32x32" },
+      { url: "/icon3.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", type: "image/png", sizes: "180x180" },
+    ],
+  },
 };
 
 export default function RootLayout({

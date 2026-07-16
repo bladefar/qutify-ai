@@ -32,7 +32,7 @@ export function DashboardSidebar() {
     <aside className="flex h-full w-60 shrink-0 flex-col border-r border-border/50 bg-card">
       <div className="flex h-16 items-center border-b border-border/50 px-5">
         <Link href="/dashboard">
-          <BrandLogo />
+          <BrandLogo icon="image" />
         </Link>
       </div>
 

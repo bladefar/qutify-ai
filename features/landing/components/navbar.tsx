@@ -14,7 +14,7 @@ export function Navbar() {
     <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-border/50 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-6">
         <Link href="/">
-          <BrandLogo />
+          <BrandLogo icon="image" />
         </Link>
 
         <ul className="hidden list-none items-center gap-8 md:flex">

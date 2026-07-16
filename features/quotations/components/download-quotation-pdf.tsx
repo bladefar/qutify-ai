@@ -1,7 +1,9 @@
 "use client";
 
+/* eslint-disable jsx-a11y/alt-text -- React-PDF Image has no alt prop. */
+
 import { useState } from "react";
-import { pdf, Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { pdf, Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { BusinessProfile } from "@/types/business-profile";
@@ -22,6 +24,8 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
     borderBottom: "1 solid #E4E4E7",
   },
+  brandRow: { flexDirection: "row", alignItems: "center" },
+  logo: { width: 36, height: 36, marginRight: 10 },
   brand: { fontSize: 22, fontWeight: 700, color: "#2563EB" },
   subtitle: { marginTop: 4, fontSize: 9, color: "#71717A" },
   businessDetails: { marginTop: 8, fontSize: 8, lineHeight: 1.35, color: "#52525B" },
@@ -78,7 +82,15 @@ function formatDate(value: string) {
   });
 }
 
-function QuotationPdfDocument({
+function getLogoUrl() {
+  if (typeof window === "undefined") {
+    return "/icon.png";
+  }
+
+  return `${window.location.origin}/icon.png`;
+}
+
+export function QuotationPdfDocument({
   quote,
   businessProfile,
 }: {
@@ -99,8 +111,13 @@ function QuotationPdfDocument({
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.brand}>{businessProfile?.business_name ?? "Quotify AI"}</Text>
-            <Text style={styles.subtitle}>Professional quotation</Text>
+            <View style={styles.brandRow}>
+              <Image src={getLogoUrl()} style={styles.logo} />
+              <View>
+                <Text style={styles.brand}>{businessProfile?.business_name ?? "Quotify AI"}</Text>
+                <Text style={styles.subtitle}>Professional quotation</Text>
+              </View>
+            </View>
             {businessDetails.map((detail) => (
               <Text key={detail} style={styles.businessDetails}>{detail}</Text>
             ))}
