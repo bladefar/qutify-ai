@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { colors } from "@/lib/design-tokens";
 
 export type RevenuePoint = {
   month: string;
@@ -29,10 +30,10 @@ export type AnalyticsOverview = {
 };
 
 const leadStatuses = [
-  { status: "hot", label: "Hot", color: "hsl(var(--brand-success))" },
-  { status: "warm", label: "Warm", color: "hsl(var(--brand-accent))" },
-  { status: "cold", label: "Cold", color: "hsl(var(--muted-foreground))" },
-  { status: "closed", label: "Closed", color: "hsl(var(--primary))" },
+  { status: "hot", label: "Hot", color: colors.success },
+  { status: "warm", label: "Warm", color: colors.accent },
+  { status: "cold", label: "Cold", color: colors.mutedForeground },
+  { status: "closed", label: "Closed", color: colors.primary },
 ] as const;
 
 function toNumber(value: number | string) {

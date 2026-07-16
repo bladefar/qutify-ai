@@ -8,6 +8,7 @@ import {
   type GeneratedQuote,
 } from "@/lib/quote-calculations";
 import { createClient } from "@/lib/supabase/server";
+import { consumeAiGenerationQuota } from "@/services/ai-rate-limit";
 
 const aiMatchSchema = z.object({
   product_id: z.string().uuid(),
@@ -102,6 +103,8 @@ export async function generateAiQuote(
   if (catalog.length === 0) {
     throw new Error("Add at least one product before generating a quote");
   }
+
+  await consumeAiGenerationQuota();
 
   const response = await getOpenRouterClient().chat.send({
     chatRequest: {

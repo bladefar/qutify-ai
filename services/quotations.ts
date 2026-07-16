@@ -1,10 +1,12 @@
 import { calculateQuoteTotals, type GeneratedQuoteItem } from "@/lib/quote-calculations";
+import { isValidQuotationStatusTransition } from "@/lib/quotation-status";
 import { createClient } from "@/lib/supabase/server";
 import type {
   Quotation,
   QuotationDetail,
   QuotationItem,
   QuotationListItem,
+  QuotationStatus,
 } from "@/types/quotation";
 
 type SaveQuoteInput = {
@@ -96,6 +98,43 @@ export async function getQuotationById(
       line_total: toNumber(item.line_total),
     })) as QuotationItem[],
   } as QuotationDetail;
+}
+
+export async function updateQuotationStatus(
+  id: string,
+  nextStatus: QuotationStatus
+): Promise<QuotationStatus> {
+  const { supabase, user } = await requireUser();
+  const { data: quotation, error: quotationError } = await supabase
+    .from("quotations")
+    .select("status")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (quotationError) throw quotationError;
+  if (!quotation) throw new Error("Quotation not found");
+
+  const currentStatus = quotation.status as QuotationStatus;
+  if (!isValidQuotationStatusTransition(currentStatus, nextStatus)) {
+    throw new Error(`Cannot change quotation from ${currentStatus} to ${nextStatus}`);
+  }
+
+  const { data: updated, error: updateError } = await supabase
+    .from("quotations")
+    .update({ status: nextStatus })
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .eq("status", currentStatus)
+    .select("status")
+    .maybeSingle();
+
+  if (updateError) throw updateError;
+  if (!updated) {
+    throw new Error("Quotation status changed elsewhere. Refresh and try again.");
+  }
+
+  return updated.status as QuotationStatus;
 }
 
 export async function saveDraftQuotation({

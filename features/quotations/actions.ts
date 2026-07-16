@@ -3,9 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { generateAiQuote } from "@/services/ai-quote";
-import { saveDraftQuotation } from "@/services/quotations";
+import {
+  saveDraftQuotation,
+  updateQuotationStatus,
+} from "@/services/quotations";
 import { createCustomer } from "@/services/customers";
 import { createClient } from "@/lib/supabase/server";
+import { QUOTATION_STATUSES } from "@/types/quotation";
 
 async function requireUser() {
   const supabase = await createClient();
@@ -49,6 +53,32 @@ export async function saveDraftQuotationAction(input: unknown) {
     return { quotationId: quotation.id };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not save quote" };
+  }
+}
+
+const updateQuotationStatusSchema = z.object({
+  quotationId: z.string().uuid(),
+  nextStatus: z.enum(QUOTATION_STATUSES),
+});
+
+export async function updateQuotationStatusAction(input: unknown) {
+  try {
+    const parsed = updateQuotationStatusSchema.safeParse(input);
+    if (!parsed.success) return { error: "Invalid quotation status update" };
+
+    const status = await updateQuotationStatus(
+      parsed.data.quotationId,
+      parsed.data.nextStatus
+    );
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/analytics");
+    revalidatePath("/dashboard/quotations");
+    revalidatePath(`/dashboard/quotations/${parsed.data.quotationId}`);
+    return { status };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Could not update quotation status",
+    };
   }
 }
 

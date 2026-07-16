@@ -11,6 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { colors } from "@/lib/design-tokens";
 import type { LeadFunnelPoint } from "@/services/analytics";
 
 export function LeadFunnelChart({ data }: { data: LeadFunnelPoint[] }) {
@@ -35,25 +36,25 @@ export function LeadFunnelChart({ data }: { data: LeadFunnelPoint[] }) {
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 12, right: 12, left: 0, bottom: 0 }}>
-              <CartesianGrid stroke="hsl(var(--border) / 0.5)" vertical={false} />
+              <CartesianGrid stroke={colors.border} strokeOpacity={0.5} vertical={false} />
               <XAxis
                 dataKey="label"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                tick={{ fill: colors.mutedForeground, fontSize: 12 }}
               />
               <YAxis
                 allowDecimals={false}
                 axisLine={false}
                 tickLine={false}
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                tick={{ fill: colors.mutedForeground, fontSize: 12 }}
                 width={28}
               />
               <Tooltip
-                cursor={{ fill: "hsl(var(--muted) / 0.35)" }}
+                cursor={{ fill: colors.border, fillOpacity: 0.35 }}
                 contentStyle={{
-                  background: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
+                  background: colors.card,
+                  border: `1px solid ${colors.border}`,
                   borderRadius: 12,
                 }}
                 formatter={(value) => [value, "Customers"]}

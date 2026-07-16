@@ -1,11 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseKey, getSupabaseUrl } from "@/lib/supabase/env";
+import { fetchWithRetry } from "@/lib/supabase/fetch-with-retry";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(getSupabaseUrl(), getSupabaseKey(), {
+    global: {
+      fetch: fetchWithRetry,
+    },
     cookies: {
       getAll() {
         return request.cookies.getAll();

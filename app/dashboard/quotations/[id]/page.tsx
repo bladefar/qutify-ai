@@ -1,22 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DownloadQuotationPdf } from "@/features/quotations/components/download-quotation-pdf";
+import { QuotationStatusControls } from "@/features/quotations/components/quotation-status-controls";
 import { getBusinessProfile } from "@/services/business-profiles";
 import { getQuotationById } from "@/services/quotations";
-import type { QuotationStatus } from "@/types/quotation";
 
 export const dynamic = "force-dynamic";
-
-const statusVariant: Record<QuotationStatus, "default" | "secondary" | "outline" | "destructive"> = {
-  draft: "secondary",
-  sent: "outline",
-  accepted: "default",
-  rejected: "destructive",
-};
 
 function formatCurrency(amount: number) {
   return `₹${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -36,15 +28,15 @@ export default async function QuotationDetailPage({
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <Button nativeButton={false} variant="link" className="mb-2 px-0" render={<Link href="/dashboard/quotations" />}><ArrowLeft className="size-4" /> Back to quotations</Button>
           <h1 className="text-2xl font-bold tracking-tight">Quotation</h1>
           <p className="text-sm text-muted-foreground">{quote.customer_name ?? "No customer"} · {new Date(quote.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col items-end gap-3">
           <DownloadQuotationPdf quote={quote} businessProfile={businessProfile} />
-          <Badge variant={statusVariant[quote.status]} className="capitalize">{quote.status}</Badge>
+          <QuotationStatusControls quotationId={quote.id} status={quote.status} />
         </div>
       </div>
 

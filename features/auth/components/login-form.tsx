@@ -1,46 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  signInAction,
+  type LoginActionState,
+} from "@/features/auth/actions";
 import { AuthLayout } from "@/features/auth/components/auth-layout";
-import { createClient } from "@/lib/supabase/client";
+
+const initialState: LoginActionState = {};
 
 export function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "/dashboard";
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [state, formAction, pending] = useActionState(signInAction, initialState);
 
   const resetComplete = searchParams.get("reset") === "success";
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (authError) {
-      setError(authError.message);
-      setLoading(false);
-      return;
-    }
-
-    router.push(redirect);
-    router.refresh();
-  }
 
   return (
     <AuthLayout
@@ -55,15 +34,15 @@ export function LoginForm() {
         </>
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form action={formAction} className="space-y-4">
+        <input type="hidden" name="redirectTo" value={redirect} />
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
+            name="email"
             type="email"
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             placeholder="you@company.com"
           />
         </div>
@@ -80,23 +59,22 @@ export function LoginForm() {
           </div>
           <Input
             id="password"
+            name="password"
             type="password"
             required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
           />
         </div>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {state.error && <p className="text-sm text-destructive">{state.error}</p>}
         {resetComplete && (
           <p className="text-sm text-brand-success">
             Password updated successfully. You can now sign in.
           </p>
         )}
 
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Signing in…" : "Sign in"}
+        <Button type="submit" className="w-full" disabled={pending}>
+          {pending ? "Signing in…" : "Sign in"}
         </Button>
       </form>
     </AuthLayout>
