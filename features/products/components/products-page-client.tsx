@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MoreHorizontal, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UpgradeNotice } from "@/components/billing/upgrade-notice";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +31,9 @@ type ProductsPageClientProps = {
   page: number;
   totalPages: number;
   search: string;
+  currentProductCount: number;
+  productLimit: number;
+  planName: string;
 };
 
 function formatPrice(amount: number) {
@@ -39,11 +43,25 @@ function formatPrice(amount: number) {
   })}`;
 }
 
-export function ProductsPageClient({ products, total, page, totalPages, search }: ProductsPageClientProps) {
+export function ProductsPageClient({
+  products,
+  total,
+  page,
+  totalPages,
+  search,
+  currentProductCount,
+  productLimit,
+  planName,
+}: ProductsPageClientProps) {
   const router = useRouter();
   const [formOpen, setFormOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const productLimitReached = currentProductCount >= productLimit;
+  const productLimitDescription =
+    planName === "Free"
+      ? `Your plan includes up to ${productLimit} products. Delete one to free capacity or move to Pro for a higher limit.`
+      : `Your plan includes up to ${productLimit} products. Delete one to free capacity before adding another.`;
 
   function handleSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -79,11 +97,19 @@ export function ProductsPageClient({ products, total, page, totalPages, search }
             Manage your product catalog and pricing.
           </p>
         </div>
-        <Button onClick={openCreate}>
+        <Button onClick={openCreate} disabled={productLimitReached}>
           <Plus className="size-4" />
           Add product
         </Button>
       </div>
+
+      {productLimitReached && (
+        <UpgradeNotice
+          compact
+          title={`${planName} product limit reached`}
+          description={productLimitDescription}
+        />
+      )}
 
       <form onSubmit={handleSearch} className="relative max-w-sm">
         <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />

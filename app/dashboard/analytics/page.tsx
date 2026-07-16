@@ -1,9 +1,11 @@
 import { FileText, IndianRupee, Percent, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { UpgradeNotice } from "@/components/billing/upgrade-notice";
 import { LeadFunnelChart } from "@/features/analytics/components/lead-funnel-chart";
 import { RevenueChart } from "@/features/analytics/components/revenue-chart";
 import { TopProductsTable } from "@/features/analytics/components/top-products-table";
 import { getAnalyticsOverview } from "@/services/analytics";
+import { getEffectiveEntitlements } from "@/services/entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +21,25 @@ function formatCurrency(amount: number) {
 }
 
 export default async function AnalyticsPage() {
+  const entitlements = await getEffectiveEntitlements();
+
+  if (!entitlements.features.analytics) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
+          <p className="text-sm text-muted-foreground">
+            Revenue, conversion, funnel, and product performance insights.
+          </p>
+        </div>
+        <UpgradeNotice
+          title="Analytics is included with Pro"
+          description="Upgrade to Pro to view revenue trends, conversion rates, lead funnel data, and top products."
+        />
+      </div>
+    );
+  }
+
   const analytics = await getAnalyticsOverview();
   const values = {
     totalRevenue: formatCurrency(analytics.totalRevenue),

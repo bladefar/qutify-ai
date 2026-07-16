@@ -60,15 +60,15 @@ export const features: Feature[] = [
 
 export const pricingTiers: PricingTier[] = [
   {
-    name: "Starter",
+    name: "Free",
     price: "₹0",
     period: "forever",
     description: "Perfect for trying Quotify with a small catalog.",
     features: [
       "Up to 25 products",
-      "50 quotes per month",
+      "20 quotations per month",
+      "10 AI generations per month",
       "Basic lead tracking",
-      "Email support",
     ],
     cta: "Get started free",
   },
@@ -78,29 +78,14 @@ export const pricingTiers: PricingTier[] = [
     period: "/month",
     description: "For growing businesses that quote daily.",
     features: [
-      "Unlimited products",
-      "Unlimited quotes",
-      "AI assistant",
+      "Up to 500 products",
+      "250 quotations per month",
+      "150 AI generations per month",
       "PDF exports",
       "Analytics dashboard",
-      "Priority support",
     ],
     highlighted: true,
-    cta: "Start free trial",
-  },
-  {
-    name: "Business",
-    price: "₹2,499",
-    period: "/month",
-    description: "For teams with multiple salespeople.",
-    features: [
-      "Everything in Pro",
-      "Up to 5 team members",
-      "Custom branding on quotes",
-      "API access",
-      "Dedicated account manager",
-    ],
-    cta: "Contact sales",
+    cta: "Get started",
   },
 ];
 
@@ -128,7 +113,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "Can I export quotes as PDF?",
     answer:
-      "Pro and Business plans include professional PDF exports with your business details, itemized lines, and totals — ready to email or print.",
+      "The Pro plan includes professional PDF exports with your business details, itemized lines, and totals — ready to email or print.",
   },
 ];
 

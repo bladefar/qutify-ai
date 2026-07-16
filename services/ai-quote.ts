@@ -8,7 +8,11 @@ import {
   type GeneratedQuote,
 } from "@/lib/quote-calculations";
 import { createClient } from "@/lib/supabase/server";
-import { consumeAiGenerationQuota } from "@/services/ai-rate-limit";
+import {
+  finalizeAiGenerationQuota,
+  refundAiGenerationQuota,
+  reserveAiGenerationQuota,
+} from "@/services/ai-rate-limit";
 
 const aiMatchSchema = z.object({
   product_id: z.string().uuid(),
@@ -104,44 +108,56 @@ export async function generateAiQuote(
     throw new Error("Add at least one product before generating a quote");
   }
 
-  await consumeAiGenerationQuota();
+  const reservation = await reserveAiGenerationQuota();
 
-  const response = await getOpenRouterClient().chat.send({
-    chatRequest: {
-      model: process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini",
-      temperature: 0,
-      stream: false,
-      responseFormat: quoteResponseFormat,
-      messages: [
-        {
-          role: "system",
-          content:
-            "Match the customer's request only to the supplied catalog. Never invent a product, product ID, price, or quantity. Return every requested item that cannot be confidently matched in unmatched_items. Do not calculate money; only return product IDs and quantities.",
-        },
-        {
-          role: "user",
-          content: JSON.stringify({ customer_request: request, catalog }),
-        },
-      ],
-    },
-  });
+  try {
+    const response = await getOpenRouterClient().chat.send({
+      chatRequest: {
+        model: process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini",
+        temperature: 0,
+        stream: false,
+        responseFormat: quoteResponseFormat,
+        messages: [
+          {
+            role: "system",
+            content:
+              "Match the customer's request only to the supplied catalog. Never invent a product, product ID, price, or quantity. Return every requested item that cannot be confidently matched in unmatched_items. Do not calculate money; only return product IDs and quantities.",
+          },
+          {
+            role: "user",
+            content: JSON.stringify({ customer_request: request, catalog }),
+          },
+        ],
+      },
+    });
 
-  const parsedJson = JSON.parse(
-    getResponseText(response.choices[0]?.message.content)
-  );
-  const parsed = aiResponseSchema.safeParse(parsedJson);
+    const parsedJson = JSON.parse(
+      getResponseText(response.choices[0]?.message.content)
+    );
+    const parsed = aiResponseSchema.safeParse(parsedJson);
 
-  if (!parsed.success) {
-    throw new Error("OpenRouter returned an invalid quote match response");
+    if (!parsed.success) {
+      throw new Error("OpenRouter returned an invalid quote match response");
+    }
+
+    // Prices, line totals, GST, discounts, and final totals are deliberately
+    // calculated from the catalog here—not accepted from the model response.
+    const quote = buildGeneratedQuote({
+      rawInput: request,
+      catalog,
+      matchedItems: parsed.data.matched_items,
+      unmatchedItems: parsed.data.unmatched_items,
+      gstRate,
+    });
+
+    // The counter is already consumed. If finalization has a transient failure,
+    // returning the valid quote is safer than charging the user and hiding it.
+    await finalizeAiGenerationQuota(reservation.reservationId).catch(() => false);
+    return quote;
+  } catch (error) {
+    // Refund is idempotent and tied to an unexposed reservation UUID. A process
+    // crash can still strand a unit, but handled provider/parse failures do not.
+    await refundAiGenerationQuota(reservation.reservationId).catch(() => false);
+    throw error;
   }
-
-  // Prices, line totals, GST, discounts, and final totals are deliberately
-  // calculated from the catalog here—not accepted from the model response.
-  return buildGeneratedQuote({
-    rawInput: request,
-    catalog,
-    matchedItems: parsed.data.matched_items,
-    unmatchedItems: parsed.data.unmatched_items,
-    gstRate,
-  });
 }

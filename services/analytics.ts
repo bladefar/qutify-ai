@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { colors } from "@/lib/design-tokens";
+import { requireEntitlementFeature } from "@/services/entitlements";
 
 export type RevenuePoint = {
   month: string;
@@ -57,6 +58,7 @@ function getLastMonths(count: number) {
 }
 
 export async function getAnalyticsOverview(): Promise<AnalyticsOverview> {
+  await requireEntitlementFeature("analytics");
   const supabase = await createClient();
   const months = getLastMonths(12);
   const firstMonth = new Date();

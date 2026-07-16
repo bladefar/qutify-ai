@@ -9,7 +9,7 @@ import { pricingTiers } from "@/features/landing/data";
 import { FadeIn } from "./fade-in";
 import { SectionHeader } from "./section-header";
 
-/** Pricing tiers — Starter, Pro (highlighted), Business from approved landing.html. */
+/** Public launch pricing for the currently available Free and Pro plans. */
 export function PricingSection() {
   return (
     <section id="pricing" className="border-t border-border/50 py-24">
@@ -20,7 +20,7 @@ export function PricingSection() {
           description="Start free and upgrade when your business grows. No hidden fees."
         />
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="mx-auto grid max-w-4xl gap-6 lg:grid-cols-2">
           {pricingTiers.map((tier) => (
             <FadeIn key={tier.name}>
               <div

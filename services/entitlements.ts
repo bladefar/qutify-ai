@@ -11,6 +11,8 @@ import type {
 type PlanRow = Pick<Plan, "id" | "code" | "name" | "tier">;
 type SubscriptionRow = Pick<UserSubscription, "id" | "plan_id">;
 
+export type EntitlementFeature = keyof EffectiveEntitlements["features"];
+
 export async function getEffectiveEntitlements(): Promise<EffectiveEntitlements> {
   const supabase = await createClient();
   const {
@@ -87,4 +89,17 @@ export async function getEffectiveEntitlements(): Promise<EffectiveEntitlements>
       aiGenerationsPerHour: Number(entitlements.max_hourly_ai_generations),
     },
   };
+}
+
+export async function requireEntitlementFeature(
+  feature: EntitlementFeature
+): Promise<EffectiveEntitlements> {
+  const entitlements = await getEffectiveEntitlements();
+
+  if (!entitlements.features[feature]) {
+    const featureName = feature === "pdfExport" ? "PDF export" : "Analytics";
+    throw new Error(`${featureName} is available on the Pro plan.`);
+  }
+
+  return entitlements;
 }

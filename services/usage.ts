@@ -2,6 +2,7 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import type {
+  AiUsageReservation,
   UsageConsumption,
   UsageMetric,
   UsageRecord,
@@ -21,6 +22,7 @@ type UsageConsumptionRow = {
   hourly_used: number | null;
   hourly_remaining: number | null;
   hourly_reset_at: string | null;
+  reservation_id?: string | null;
 };
 
 async function requireUser() {
@@ -60,11 +62,7 @@ export async function getCurrentUsage(): Promise<UsageSnapshot> {
   };
 }
 
-/**
- * Atomically reserves one unit against DB-resolved plan limits. This service is
- * intentionally not wired into any product flow yet; Part 2 will decide where
- * a successful reservation belongs in each create/generate transaction.
- */
+/** Compatibility wrapper for non-reserved usage consumption. */
 export async function consumeTrackedUsage(
   metric: UsageMetric
 ): Promise<UsageConsumption> {
@@ -80,6 +78,10 @@ export async function consumeTrackedUsage(
     | null;
   if (!row) throw new Error("Usage could not be recorded");
 
+  return mapUsageConsumption(row);
+}
+
+function mapUsageConsumption(row: UsageConsumptionRow): UsageConsumption {
   return {
     allowed: row.allowed,
     planCode: row.plan_code,
@@ -93,4 +95,45 @@ export async function consumeTrackedUsage(
       row.hourly_remaining === null ? null : Number(row.hourly_remaining),
     hourlyResetAt: row.hourly_reset_at,
   };
+}
+
+export async function reserveAiGenerationUsage(): Promise<AiUsageReservation> {
+  const { supabase } = await requireUser();
+  const { data, error } = await supabase.rpc("reserve_ai_entitlement_usage");
+
+  if (error) throw error;
+
+  const row = (Array.isArray(data) ? data[0] : data) as
+    | UsageConsumptionRow
+    | null;
+  if (!row) throw new Error("AI usage could not be reserved");
+
+  return {
+    ...mapUsageConsumption(row),
+    reservationId: row.reservation_id ?? null,
+  };
+}
+
+export async function finalizeAiGenerationUsage(
+  reservationId: string
+): Promise<boolean> {
+  const { supabase } = await requireUser();
+  const { data, error } = await supabase.rpc("finalize_ai_entitlement_usage", {
+    p_reservation_id: reservationId,
+  });
+
+  if (error) throw error;
+  return data === true;
+}
+
+export async function refundAiGenerationUsage(
+  reservationId: string
+): Promise<boolean> {
+  const { supabase } = await requireUser();
+  const { data, error } = await supabase.rpc("refund_ai_entitlement_usage", {
+    p_reservation_id: reservationId,
+  });
+
+  if (error) throw error;
+  return data === true;
 }

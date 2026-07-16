@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Plus, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UpgradeNotice } from "@/components/billing/upgrade-notice";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,9 @@ import type { Customer } from "@/types/customer";
 type NewQuotationClientProps = {
   initialCustomers: Customer[];
   defaultGstRate: number;
+  quotationUsage: number;
+  quotationLimit: number;
+  planName: string;
 };
 
 function formatCurrency(amount: number) {
@@ -34,6 +38,9 @@ function formatCurrency(amount: number) {
 export function NewQuotationClient({
   initialCustomers,
   defaultGstRate,
+  quotationUsage,
+  quotationLimit,
+  planName,
 }: NewQuotationClientProps) {
   const router = useRouter();
   const [rawInput, setRawInput] = useState("");
@@ -50,6 +57,11 @@ export function NewQuotationClient({
   const [isGenerating, startGenerating] = useTransition();
   const [isSaving, startSaving] = useTransition();
   const [isCreatingCustomer, startCreatingCustomer] = useTransition();
+  const quotationLimitReached = quotationUsage >= quotationLimit;
+  const quotationLimitDescription =
+    planName === "Free"
+      ? `You have used all ${quotationLimit} quotations available this month. Upgrade to Pro for a higher monthly limit.`
+      : `You have used all ${quotationLimit} quotations available this month. New quotation capacity becomes available after the monthly reset.`;
 
   const totals = useMemo(() => {
     try {
@@ -137,6 +149,14 @@ export function NewQuotationClient({
           Describe what the customer needs. AI matches only products in your catalog.
         </p>
       </div>
+
+      {quotationLimitReached && (
+        <UpgradeNotice
+          title={`${planName} monthly quotation limit reached`}
+          description={quotationLimitDescription}
+          showAction={planName === "Free"}
+        />
+      )}
 
       <Card className="glass">
         <CardContent className="space-y-4">
@@ -245,7 +265,11 @@ export function NewQuotationClient({
                 <div className="flex justify-between"><span className="text-muted-foreground">GST</span><span>{formatCurrency(totals.gstAmount)}</span></div>
                 <div className="flex justify-between border-t pt-2 text-base font-bold"><span>Total</span><span>{formatCurrency(totals.total)}</span></div>
               </div>
-              <Button className="w-full" onClick={saveDraft} disabled={isSaving || items.length === 0}>
+              <Button
+                className="w-full"
+                onClick={saveDraft}
+                disabled={isSaving || items.length === 0 || quotationLimitReached}
+              >
                 {isSaving ? <Loader2 className="size-4 animate-spin" /> : null}
                 {isSaving ? "Saving…" : "Save draft"}
               </Button>

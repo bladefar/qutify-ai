@@ -115,3 +115,7 @@ export type UsageConsumption = {
   hourlyRemaining: number | null;
   hourlyResetAt: string | null;
 };
+
+export type AiUsageReservation = UsageConsumption & {
+  reservationId: string | null;
+};

@@ -3,9 +3,10 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { UpgradeNotice } from "@/components/billing/upgrade-notice";
 import { DownloadQuotationPdf } from "@/features/quotations/components/download-quotation-pdf";
 import { QuotationStatusControls } from "@/features/quotations/components/quotation-status-controls";
-import { getBusinessProfile } from "@/services/business-profiles";
+import { getEffectiveEntitlements } from "@/services/entitlements";
 import { getQuotationById } from "@/services/quotations";
 
 export const dynamic = "force-dynamic";
@@ -20,9 +21,9 @@ export default async function QuotationDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [quote, businessProfile] = await Promise.all([
+  const [quote, entitlements] = await Promise.all([
     getQuotationById(id),
-    getBusinessProfile(),
+    getEffectiveEntitlements(),
   ]);
   if (!quote) notFound();
 
@@ -35,7 +36,17 @@ export default async function QuotationDetailPage({
           <p className="text-sm text-muted-foreground">{quote.customer_name ?? "No customer"} · {new Date(quote.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}</p>
         </div>
         <div className="flex flex-col items-end gap-3">
-          <DownloadQuotationPdf quote={quote} businessProfile={businessProfile} />
+          {entitlements.features.pdfExport ? (
+            <DownloadQuotationPdf quotationId={quote.id} />
+          ) : (
+            <div className="max-w-sm">
+              <UpgradeNotice
+                compact
+                title="PDF export is included with Pro"
+                description="Upgrade to download professional quotation PDFs."
+              />
+            </div>
+          )}
           <QuotationStatusControls quotationId={quote.id} status={quote.status} />
         </div>
       </div>
