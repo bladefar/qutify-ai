@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   BarChart3,
   Bot,
+  CreditCard,
   FileText,
   LayoutDashboard,
   Package,
@@ -22,6 +23,7 @@ const navItems = [
   { label: "AI Assistant", href: "/dashboard/assistant", icon: Bot, disabled: true },
   { label: "Quotations", href: "/dashboard/quotations", icon: FileText },
   { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+  { label: "Billing", href: "/dashboard/billing", icon: CreditCard },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 

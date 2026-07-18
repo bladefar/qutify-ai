@@ -17,6 +17,9 @@ export const SUBSCRIPTION_STATUSES = [
 ] as const;
 export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
 
+export const PRO_CHECKOUT_PLAN_CODES = ["pro_monthly", "pro_annual"] as const;
+export type ProCheckoutPlanCode = (typeof PRO_CHECKOUT_PLAN_CODES)[number];
+
 export const USAGE_METRICS = ["quotations", "ai_generations"] as const;
 export type UsageMetric = (typeof USAGE_METRICS)[number];
 
@@ -58,6 +61,8 @@ export type UserSubscription = {
   plan_id: string;
   provider: "razorpay";
   provider_subscription_id: string;
+  provider_payment_id: string | null;
+  checkout_plan_code: ProCheckoutPlanCode | null;
   status: SubscriptionStatus;
   current_period_start: string | null;
   current_period_end: string | null;
